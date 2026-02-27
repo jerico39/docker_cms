@@ -1,0 +1,5 @@
+[wsl2]
+memory=45GB   # 仮想マシンに割り当てるメモリ
+processors=4  # 使用するCPUコア
+swap=16GB      # スワップ領域
+localhostForwarding=true

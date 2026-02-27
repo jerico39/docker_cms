@@ -1,0 +1,602 @@
+用語の指すファイルの保管場所
+・マイグレーション
+database/migrations/
+
+・モデル
+app/Models/
+
+・Resource
+app/Filament/Resources
+
+
+
+参考元
+https://chatgpt.com/share/681da2da-6678-8009-b61e-780dc51fe646
+
+https://zenn.dev/egstock_inc/articles/6d07a13bdc59a3
+
+
+
+
+https://chatgpt.com/c/6996820a-fa90-8320-9b3c-22694cc47ef4
+
+
+
+ファイル更新後のキャッシュクリア
+・コンテナから
+php artisan route:clear
+php artisan cache:clear
+php artisan config:clear
+
+dockerのバッシュから
+docker compose exec app php artisan route:clear
+
+※
+Cドライブ以下でディレクトリを作成し実行した。
+※WSL以下だと、.envの変更がどうしてもできなくなる。
+
+コンテナに入る。
+winpty docker exec -it docker_cms-app-1 bash
+
+
+
+インストール
+composer create-project laravel/laravel cms
+
+
+.env　のDB変更
+
+
+
+
+cd cms
+
+・設定更新
+php artisan config:clear
+
+TOPに接続
+
+■エラー
+tempnam(): file created in the system's temporary directory
+
+＞以下のコマンドで解消
+chown -R www-data:www-data /var/www/cms/storage /var/www/cms/bootstrap/cache
+chmod -R 775 /var/www/cms/storage /var/www/cms/bootstrap/cache
+
+■エラー
+Illuminate\Database\QueryException
+vendor/laravel/framework/src/Illuminate/Database/Connection.php:838
+SQLSTATE[42S02]: Base table or view not found: 1146 Table 'laravel.sessions' doesn't exist (Connection: mysql, Host: db, Port: 3306, Database: laravel, SQL: select * from `sessions` where `id` = f0WaXUPKUQTyhe2LBp7sNDyvo10RoLKXY38a9pFa limit 1)
+
+＞sessions テーブルを作るコマンド
+php artisan session:table
+php artisan migrate
+
+
+→TOPが見えるようになる。
+
+
+■filament パッケージのインストール
+composer require filament/filament:"^3.2" -W
+
+■パネル（管理画面）のセットアップ:
+php artisan filament:install --panels
+↓管理画面のURL
+ What is the ID? ─────────────────────────────────────────────┐
+ │ admin    
+
+
+■ユーザーの作成
+php artisan make:filament-user
+
+設定したユーザー
+user
+wakai39@gmail.com
+test22
+
+http://localhost:8000/admin/
+
+で管理画面ログイン画面が表示
+
+
+チャッピー
+https://chatgpt.com/c/699fb11b-78d8-8323-aeb0-8c9347a1e15b
+
+
+以下から、企業型CMSの作成手順
+■
+① Page（固定ページ管理）
+例：
+about（会社概要）
+service（事業内容）
+recruit（採用）
+
+php artisan make:model Page -m
+
+
+database/migrations/
+以下にファイルが自動生成されるので、その中に定義を追記する。
+$table->id();
+$table->string('title');
+$table->string('slug')->unique();
+$table->longText('content')->nullable();
+$table->boolean('is_published')->default(true);
+$table->timestamps();
+
+
+以下を実行でテーブル作成（全テーブル定義を書いてから実行してもよい）
+php artisan migrate
+
+
+② News（お知らせ）
+php artisan make:model News -m
+
+database/migrations/
+以下にファイルが自動生成されるので、その中に定義を追記する。
+$table->id();
+$table->string('title');
+$table->string('slug')->unique();
+$table->text('content');
+$table->timestamp('published_at')->nullable();
+$table->boolean('is_published')->default(false);
+$table->timestamps();
+
+
+
+
+
+
+③ SiteSetting（サイト共通情報）
+php artisan make:model SiteSetting -m
+
+作成されたファイルへの定義
+       $table->id();
+
+        // 会社情報
+        $table->string('company_name');
+        $table->string('address')->nullable();
+        $table->string('phone')->nullable();
+        $table->string('email')->nullable();
+
+        $table->timestamps();
+
+反映
+php artisan migrate
+
+
+■Filament Resource作成
+php artisan make:filament-resource Page
+php artisan make:filament-resource News
+php artisan make:filament-resource SiteSetting
+
+これかコマンドで
+app/Filament/Resources/●●●Resource.php]
+のファイルが作成される。
+
+
+企業CMSで必須カスタマイズ
+Page Resource の form 例、public static function form(Form $form): Form
+の中の
+        ->schema([
+                //
+            ]);
+ 内に以下を追記する。
+ 
+
+Forms\Components\TextInput::make('title')->required();
+
+Forms\Components\TextInput::make('slug')
+    ->required()
+    ->unique(ignoreRecord: true);
+
+Forms\Components\RichEditor::make('content')
+    ->columnSpanFull();
+
+Forms\Components\Toggle::make('is_published');
+
+
+② フロント側表示の Route はどこに書く？
+📍 ファイルの場所
+routes/web.php
+
+
+に以下を追記
+Route::get('/{slug}', function ($slug) {
+    $page = Page::where('slug', $slug)
+        ->where('is_published', true)
+        ->firstOrFail();
+
+    return view('pages.show', compact('page'));
+});
+
+
+
+■
+resources/views/layouts/app.blade.php
+を作成
+
+
+<内容>
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>@yield('title')</title>
+</head>
+<body>
+
+<header>
+    <h1>株式会社サンプル</h1>
+    <nav>
+        <a href="/">TOP</a>
+        <a href="/about">会社概要</a>
+        <a href="/service">事業内容</a>
+        <a href="/contact">お問い合わせ</a>
+    </nav>
+</header>
+
+<main>
+    @yield('content')
+</main>
+
+<footer>
+    <p>© 2026 株式会社サンプル</p>
+</footer>
+
+</body>
+</html>
+
+●
+Step2：show.blade.php をレイアウト対応に変更
+resources/views/pages/show.blade.php
+
+＜内容＞
+
+@extends('layouts.app')
+
+@section('title', $page->title)
+
+@section('content')
+    <h2>{{ $page->title }}</h2>
+
+    <div>
+        {!! $page->content !!}
+    </div>
+@endsection
+
+●
+Step3：TOPページをCMS化
+
+\routes\web.php にTOP用追加（推奨）
+
+use App\Models\Page;
+
+Route::get('/', function () {
+    $page = Page::where('slug', 'home')
+        ->where('is_published', true)
+        ->firstOrFail();
+
+    return view('pages.show', compact('page'));
+});
+
+
+
+※ /{slug} の上に書いてください。
+
+
+
+・C:\docker_cms\src\cms\routes\web.php
+の以下をコメントアウト
+#Route::get('/', function () {
+#    return view('welcome');
+#});
+
+
+■Pageモデルの変更
+C:\docker_cms\src\cms\app\Models\Page.php
+
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Page extends Model
+{
+    protected $fillable = [
+        'title',
+        'slug',
+        'content',
+        'is_published',
+    ];
+}
+
+
+↑これが無いと管理画面でPage登録時に以下のエラーが出る。
+Illuminate\Database\Eloquent\MassAssignmentException
+vendor/laravel/framework/src/Illuminate/Database/Eloquent/Model.php:624
+Add [title] to fillable property to allow mass assignment on [App\Models\Page].
+
+
+■管理画面Pageの一覧画面の表示項目。
+
+C:\docker_cms\src\cms\app\Filament\Resources\PageResource.php
+の
+public static function table(Table $table): Table
+にある。　->columns の内容を以下に変更。
+
+->columns([
+            Tables\Columns\TextColumn::make('title')
+                ->searchable()
+                ->sortable(),
+
+            Tables\Columns\TextColumn::make('slug')
+                ->searchable(),
+
+            Tables\Columns\IconColumn::make('is_published')
+                ->boolean(),
+
+            Tables\Columns\TextColumn::make('updated_at')
+                ->dateTime('Y-m-d H:i'),
+        ])
+        ->defaultSort('updated_at', 'desc')
+        
+        
+
+
+
+■Pageの登録
+・管理画面にて、
+メニューのPage、New PAGEで新規ページを追加
+
+
+slugは「home」
+Is publishedをON
+
+→TOPが表示される。
+
+http://localhost:8000/
+
+
+
+
+
+■Pageの登録にて画像が登録されなかった。
+Pageを作成する各要素に以下を追加する
+
+×・マイグレーション(カラム追加マイグレーションに変更)
+×$table->string('image')->nullable();
+
+
+カラム追加用マイグレーション
+実行して、
+php artisan make:migration add_image_to_pages_table --table=pages
+
+
+作成されたファイルの中身は
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::table('pages', function (Blueprint $table) {
+            $table->string('image')->nullable()->after('content');
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::table('pages', function (Blueprint $table) {
+            $table->dropColumn('image');
+        });
+    }
+};
+
+
+マイグレーション実行で、imageフィールド追加
+php artisan migrate
+
+
+
+・モデル
+protected $fillable = [
+    'title',
+    'slug',
+    'content',
+    'is_published',
+    'image',
+];
+
+
+
+storageリンク確認（まだなら）
+php artisan storage:link
+
+
+
+・Resource
+PageResource.php の form にこう書いていますか？
+
+Forms\Components\FileUpload::make('image')
+    ->image()
+    ->directory('pages')
+    ->disk('public'),
+
+
+
+
+
+
+追加したらコンテナ内からコマンドで反映
+php artisan storage:link
+
+このコマンドでstorage/app/publicがpublic/storage に公開される。
+
+
+
+
+
+
+
+
+
+
+
+===================================
+
+
+composer require laravel/breeze --dev
+php artisan breeze:install
+npm install && npm run build
+php artisan migrate
+
+
+
+
+
+
+
+解消
+WSLにログインして以下のコマンド
+ sudo chmod -R 777 src/storage src/bootstrap/cache
+
+
+
+
+
+
+✅ .env設定例（MySQL連携）
+src/.env の一部を以下のように設定してください：
+
+
+DB_CONNECTION=mysql
+DB_HOST=db
+DB_PORT=3306
+DB_DATABASE=laravel
+DB_USERNAME=laravel
+DB_PASSWORD=secret
+
+
+http://localhost:8000
+
+
+
+エラー
+SQLSTATE[42S02]: Base table or view not found: 1146 Table 'laravel.sessions' doesn't exist (Connection: mysql, SQL: select * from sessions where id = 1ArjTxo5RRn7JROOC03kShXvaV6BSAdUYtIUjjyr limit 1)
+
+
+・docker_lara直下で以下のコマンド
+※srcはドキュメントルート
+
+docker 
+composer create-project laravel/laravel cms 
+
+
+
+コンテナに入る
+
+
+winpty docker exec -it docker_lara-app-1 bash
+
+権限の変更コマンド
+chown -R www-data:www-data /var/www/cms/storage /var/www/cms/bootstrap/cache
+chmod -R 775 /var/www/cms/storage /var/www/cms/bootstrap/cache
+
+
+chown -R www-data:www-data /var/www/cms/.env
+chmod -R 775 /var/www/cms/.env
+
+
+
+Illuminate\Database\QueryException
+vendor/laravel/framework/src/Illuminate/Database/Connection.php:838
+SQLSTATE[HY000]: General error: 8 attempt to write a readonly database (Connection: sqlite, Database: /var/www/cms/database/database.sqlite, SQL: update "sessions" set "payload" = YTozOntzOjY6Il90b2tlbiI7czo0MDoiU0JFcEU1bmlUbWtmNnpjQjJlN0hMV3lKakliUERONnFrMVhhbGFDUyI7czo5OiJfcHJldmlvdXMiO2E6Mjp7czozOiJ1cmwiO3M6MjE6Imh0dHA6Ly9sb2NhbGhvc3Q6ODAwMCI7czo1OiJyb3V0ZSI7Tjt9czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319fQ==, "last_activity" = 1772003398, "user_id" = ?, "ip_address" = 172.30.0.1, "user_agent" = Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36, "id" = dmltwQrhjxIuWvAFGnA0ebyzwMYYdeQIDgtjKVCC where "id" = dmltwQrhjxIuWvAFGnA0ebyzwMYYdeQIDgtjKVCC)
+
+
+.envの設定を書き換える
+DB_CONNECTION=mysql
+DB_HOST=db
+DB_PORT=3306
+DB_DATABASE=laravel
+DB_USERNAME=laravel
+DB_PASSWORD=secret
+
+
+
+昔の
+====================
+解決：
+docker-compose exec app php artisan session:table
+
+
+# セッションテーブルのマイグレーションファイルを作成
+docker-compose exec app php artisan session:table
+
+# マイグレーションを実行してテーブルを作成
+docker-compose exec app php artisan migrate
+
+※
+セッションをデータベースに保存する必要がなければ、.env を以下のようにして ファイルドライバに戻すこともできます：
+
+env
+
+SESSION_DRIVER=file
+
+そのあと：
+
+bash
+docker-compose exec app php artisan config:clear
+
+
+
+
+
+laraveのTOP画面が見える場外になる。
+
+
+■管理画面 filamentのインストール
+
+コンテナ内のlaravelディレクトリで以下のコマンドを実行
+composer require filament/filament
+
+
+
+
+
+
+
+
+
+AdminLTEのインストール
+root@da0576abf265:/var/www# php artisan adminlte:install
+
+root@da0576abf265:/var/www# php artisan adminlte:install --only=auth_views
+
+
+
+
+ついでにやった(いるかいらんか不明)
+php artisan key:generate
+php artisan storage:link
+chmod -R 777 storage bootstrap/cache
+php artisan migrate
+
+
+
+コマンド実行後、下記にファイルやディレクトリが生成されていればインストールは完了です。
+src/config/adminlte.php
+src/lang/
+src/public/vendor/
+src/resources/views/auth/
+
+
+管理画面の表示
+http://localhost:8000/admin/login
+
+
+後のhomeの表示実装のURL
+http://localhost:8000/admin/home
