@@ -433,12 +433,51 @@ Forms\Components\FileUpload::make('image')
 
 追加したらコンテナ内からコマンドで反映
 php artisan storage:link
-
 このコマンドでstorage/app/publicがpublic/storage に公開される。
 
 
 
 
+※ cms/public ls -l でシンボリックリンクになっていることがわかる。
+
+storage -> /var/www/cms/storage/app/public
+
+
+
+
+表示されない
+直接パスでも画像が表示されない。
+
+例
+http://localhost:8000/storage/pages/01KJEYDVTVDTGMRJT56EADMT8N.jpg
+
+
+
+
+
+権限
+docker compose exec app chmod -R 775 storage
+docker compose exec app chmod -R 775 bootstrap/cache
+
+
+これでも見れないと
+ls -la storage/app/public/pages
+で,root権限になってないか見てみる。
+
+もしroot権限なら権限変更。
+chown -R www-data:www-data storage
+
+
+
+
+■管理画面で画像のloadが終わらない
+
+.env の設定を修正
+APP_URL=http://localhost:8000
+
+違っていたら修正 → コンテナ再起動：
+
+docker compose restart
 
 
 
