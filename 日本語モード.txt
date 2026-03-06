@@ -1,0 +1,54 @@
+Laravel 12 と
+Filament 3 を 日本語化する方法はいくつかあります。一般的で簡単な方法を順番に説明します。
+
+① Laravel 自体を日本語化
+
+まず Laravel の言語設定を日本語にします。
+
+1. 日本語言語パックをインストール
+composer require laravel-lang/lang --dev
+2. 日本語を公開
+php artisan lang:add ja
+3. config/app.php を変更
+'locale' => 'ja',
+'fallback_locale' => 'ja',
+
+これで Laravel の標準メッセージ（validationなど）が日本語になります。
+
+
+
+
+
+
+
+Filament3 の正しい日本語化方法
+
+Filament v3 は
+標準で翻訳ファイルを持っています。
+
+なので通常は 追加パッケージ不要です。
+
+① Laravelのlocaleを日本語にする
+
+config/app.php
+
+'locale' => 'ja',
+'fallback_locale' => 'ja',
+② Filamentの翻訳ファイルを公開
+php artisan vendor:publish --tag=filament-panels-translations
+
+作成されるディレクトリ
+
+lang/vendor/filament-panels/ja
+③ キャッシュクリア
+php artisan optimize:clear
+日本語化をもっと簡単にする方法
+
+Laravel全体を日本語化するなら
+このパッケージがよく使われます。
+
+laravel-lang/lang
+
+（あなたの composer.json にはすでに入っています）
+
+"laravel-lang/lang": "^15.28"
