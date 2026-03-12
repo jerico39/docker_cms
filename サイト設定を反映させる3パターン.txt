@@ -1,0 +1,123 @@
+「サイト設定」をフロント側で使う場合、
+書く場所は主に3パターンあります。
+
+あなたの今の構成（Page を表示するCMS）なら
+②が一番おすすめです。
+
+① Blade内で直接取得（簡単）
+
+例：ヘッダー
+
+ファイル
+
+resources/views/layouts/app.blade.php
+
+書き方
+
+@php
+$setting = \App\Models\Setting::first();
+@endphp
+
+<title>{{ $setting->site_name }}</title>
+
+例
+
+<title>俺のサイト</title>
+② Controller / Routeで渡す（おすすめ）
+
+今あなたの web.php はこれです。
+
+Route::get('/', function () {
+    $page = Page::where('slug', 'home')
+        ->where('is_published', true)
+        ->firstOrFail();
+
+    return view('pages.show', compact('page'));
+});
+
+ここに追加します。
+
+編集ファイル
+
+routes/web.php
+
+修正
+
+use App\Models\Setting;
+
+そして
+
+Route::get('/', function () {
+
+    $page = Page::where('slug', 'home')
+        ->where('is_published', true)
+        ->firstOrFail();
+
+    $setting = Setting::first();
+
+    return view('pages.show', compact('page', 'setting'));
+});
+Bladeで使う
+
+ファイル
+
+resources/views/pages/show.blade.php
+
+例
+
+<title>{{ $setting->site_name }}</title>
+
+<h1>{{ $setting->site_name }}</h1>
+
+<p>{{ $setting->site_description }}</p>
+③ 全ページで使う（CMSではこれがベスト）
+
+ViewServiceProviderで共有します。
+
+作成
+
+php artisan make:provider ViewServiceProvider
+
+編集
+
+app/Providers/ViewServiceProvider.php
+use Illuminate\Support\Facades\View;
+use App\Models\Setting;
+
+public function boot()
+{
+    View::share('setting', Setting::first());
+}
+
+登録
+
+config/app.php
+'providers' => [
+    App\Providers\ViewServiceProvider::class,
+],
+
+これで 全Bladeで使える
+
+{{ $setting->site_name }}
+CMSでのおすすめ構成
+
+Laravel CMSでは普通こうします。
+
+app/
+ ├ Models
+ │   └ Setting.php
+ │
+ ├ Providers
+ │   └ ViewServiceProvider.php
+ │
+resources/views
+ ├ layouts
+ │   └ app.blade.php
+ │
+ └ pages
+     └ show.blade.php
+実際の使用例
+header
+<h1>{{ $setting->site_name }}</h1>
+footer
+<p>© {{ $setting->site_name }}</p>

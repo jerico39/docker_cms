@@ -52,3 +52,231 @@ laravel-lang/lang
 （あなたの composer.json にはすでに入っています）
 
 "laravel-lang/lang": "^15.28"
+
+
+
+==================
+■filmentのメニューを一括で日本語化
+
+
+はい、できます 👍
+Laravelの Filament では、管理画面のメニュー名やタイトルを一括で日本語化する方法がいくつかあります。
+一番きれいで管理しやすい方法を説明します。
+
+方法①（おすすめ）
+Filamentの日本語言語ファイルを使う
+
+Filamentは Laravelの翻訳機能を使っているので、
+lang ディレクトリに日本語を追加します。
+
+① 日本語言語ファイル作成
+php artisan lang:publish
+
+すると
+
+lang/
+ ├ en
+ └ vendor
+     └ filament
+
+が作られます。
+
+② 日本語ディレクトリを作る
+lang/ja
+
+作成
+
+③ app.php を日本語にする
+
+📄
+
+config/app.php
+
+変更
+
+'locale' => 'ja',
+① 翻訳ファイルを作る
+
+まずディレクトリを作ります。
+
+lang/ja
+
+その中にファイルを作成
+
+lang/ja/models.php
+② モデル名の日本語を定義
+
+models.php
+
+<?php
+
+return [
+
+    'User' => 'ユーザー',
+    'News' => 'ニュース',
+    'Category' => 'カテゴリ',
+    'Tag' => 'タグ',
+    'Page' => 'ページ',
+
+];
+③ Resource側を自動翻訳にする
+
+例
+UserResource.php
+
+protected static ?string $modelLabel = null;
+protected static ?string $pluralModelLabel = null;
+
+public static function getModelLabel(): string
+{
+    return __('models.' . class_basename(static::$model));
+}
+
+public static function getPluralModelLabel(): string
+{
+    return __('models.' . class_basename(static::$model));
+}
+④ メニューグループも日本語化
+
+例えば
+
+protected static ?string $navigationGroup = 'コンテンツ管理';
+
+または
+
+protected static ?string $navigationGroup = 'ユーザー管理';
+完成イメージ
+
+管理画面メニュー
+
+ダッシュボード
+
+コンテンツ管理
+ ├ ページ
+ ├ ニュース
+ ├ カテゴリ
+ └ タグ
+
+ユーザー管理
+ └ ユーザー
+この方法のメリット
+
+新しい機能を追加しても
+
+例
+
+Product
+Event
+Blog
+
+models.php に書くだけ
+
+'Product' => '商品',
+'Event' => 'イベント',
+'Blog' => 'ブログ',
+
+自動で管理画面が日本語になります。
+
+
+
+
+
+
+＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+https://chatgpt.com/c/699fb11b-78d8-8323-aeb0-8c9347a1e15b
+
+では、Table・Formのラベルを完全自動で日本語化する方法を説明します 👍
+Laravel + Filament で CMS を作るときに、実務でもよく使う方法です。
+
+この方法を入れると
+
+TextInput::make('title')
+
+だけで
+
+タイトル
+
+と表示されます。
+label() を毎回書く必要がなくなります。
+
+① 翻訳ファイルを作る
+lang/ja/columns.php
+
+作成
+
+<?php
+
+return [
+
+    'id' => 'ID',
+    'title' => 'タイトル',
+    'slug' => 'スラッグ',
+    'content' => '本文',
+    'image' => '画像',
+    'category_id' => 'カテゴリ',
+    'is_published' => '公開',
+    'published_at' => '公開日',
+    'created_at' => '作成日',
+    'updated_at' => '更新日',
+
+    'name' => '名前',
+    'email' => 'メールアドレス',
+    'password' => 'パスワード',
+
+];
+
+
+②app\helpers.php
+に以下を定義
+<?php
+
+use App\Support\Label;
+
+if (! function_exists('modelLabel')) {
+    function modelLabel($model)
+    {
+        $name = class_basename($model);
+        return __("models.$name");
+    }
+}
+
+if (! function_exists('columnLabel')) {
+    function columnLabel($column)
+    {
+        return __("columns.$column");
+    }
+}
+
+
+
+・composer.json を修正
+autoloadに
+
+   "files": [
+        "app/helpers.php"
+    ]
+を追加する。
+
+
+例）
+"autoload": {
+    "psr-4": {
+        "App\\": "app/"
+    },
+    "files": [
+        "app/helpers.php"
+    ]
+}
+
+
+
+
+
+⑥ 最終確認
+app/helpers.php
+composer.json
+
+この2つが合っていれば
+
+->label(columnLabel('title'))
+

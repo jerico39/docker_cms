@@ -1,3 +1,9 @@
+設定したユーザー
+user
+wakai39@gmail.com
+test22
+
+
 用語の指すファイルの保管場所
 ・マイグレーション
 database/migrations/
@@ -10,6 +16,7 @@ app/Filament/Resources
 
 WSL内のコンテナで作成したファイルを更新できない場合、
 そのファイルがあるディレクトリに移動して以下のコマンドでユーザーを1000に変更したら、変更できた。
+
 chown -R 1000:1000 *
 
 参考元
@@ -1157,6 +1164,569 @@ public static function table(Table $table): Table
 
 
 ＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
+
+
+
+
+
+
+
+
+
+
+
+
+
+■管理にUserメニューを追加
+① UserResource を作成
+
+プロジェクトルートで実行：
+
+php artisan make:filament-resource User
+
+すると次のファイルが作られます：
+
+app/Filament/Resources/UserResource.php
+app/Filament/Resources/UserResource/Pages/ListUsers.php
+app/Filament/Resources/UserResource/Pages/CreateUser.php
+app/Filament/Resources/UserResource/Pages/EditUser.php
+
+これでメニューに Userが追加される。
+
+docker 上で作成したファイルをWin上で編集可能に
+chown -R 1000:1000 *
+
+
+■	Userフォームを整える
+app/Filament/Resources/UserResource.php
+
+form() をこう修正します。
+
+use Filament\Forms;
+use Filament\Forms\Form;
+
+public static function form(Form $form): Form
+{
+    return $form
+        ->schema([
+
+            Forms\Components\TextInput::make('name')
+                ->required()
+                ->maxLength(255),
+
+            Forms\Components\TextInput::make('email')
+                ->email()
+                ->required()
+                ->unique(ignoreRecord: true),
+
+            Forms\Components\TextInput::make('password')
+                ->password()
+                ->dehydrated(fn ($state) => filled($state))
+                ->required(fn ($record) => $record === null),
+
+        ]);
+}
+
+
+
+
+③ パスワードをハッシュ化
+同ファイルに以下を追加
+
+use Illuminate\Support\Facades\Hash;
+
+password フィールドを変更：
+
+Forms\Components\TextInput::make('password')
+    ->password()
+    ->dehydrateStateUsing(fn ($state) => Hash::make($state))
+    ->dehydrated(fn ($state) => filled($state))
+    ->required(fn ($record) => $record === null)
+
+
+
+
+
+④ 一覧表示
+
+use Filament\Tables;
+use Filament\Tables\Table;
+
+public static function table(Table $table): Table
+{
+    return $table
+        ->columns([
+            Tables\Columns\TextColumn::make('name')
+                ->searchable(),
+
+            Tables\Columns\TextColumn::make('email')
+                ->searchable(),
+
+            Tables\Columns\TextColumn::make('created_at')
+                ->dateTime('Y-m-d'),
+        ]);
+}
+
+
+■さらにUser機能を強化
+① ユーザー権限カラム追加
+
+まず users テーブルに role を追加します。
+
+php artisan make:migration add_role_to_users_table
+
+
+database/migrations/ にファイルが作成される
+
+docker 上で作成したファイルをWin上で編集可能に
+chown -R 1000:1000 *
+
+
+Schema::table('users', function (Blueprint $table) {
+    $table->string('role')->default('editor');
+});
+
+
+実行
+
+php artisan migrate
+
+
+
+② Userモデルに権限メソッド
+app/Models/User.php
+
+
+public function isAdmin()
+{
+    return $this->role === 'admin';
+}
+
+
+③ User管理画面にRole追加
+
+app/Filament/Resources/UserResource.php
+
+form() に追加
+
+use Filament\Forms\Components\Select;
+
+Select::make('role')
+    ->options([
+        'admin' => 'Admin',
+        'editor' => 'Editor',
+    ])
+    ->required()
+    
+ 
+一覧表示
+
+TextColumn::make('role')
+    ->badge()
+    ->color(fn ($state) => $state === 'admin' ? 'danger' : 'success')
+    
+    
+   
+   
+④ Newsに投稿者追加
+
+php artisan make:migration add_user_id_to_news_table
+
+    
+
+
+■サイト設定の追加
+
+DB
+php artisan make:model Setting -m
+
+docker 上で作成したファイルをWin上で編集可能に
+chown -R 1000:1000 *
+
+
+テーブルの設定
+public function up(): void
+{
+    Schema::create('settings', function (Blueprint $table) {
+        $table->id();
+
+        $table->string('site_name')->nullable();
+        $table->string('site_description')->nullable();
+        $table->string('logo')->nullable();
+        $table->string('contact_email')->nullable();
+
+        $table->timestamps();
+    });
+}
+
+
+DBへ反映
+php artisan migrate
+
+
+
+3 初期データを作る（重要）
+php artisan tinker
+↑これで起動するプロンプトに以下のコマンドを実行する。
+App\Models\Setting::create();
+
+これで settings テーブルに1レコード作成されます。
+※代わりにSeederを使うこともできる
+
+説明：
+https://webabc.hatenablog.jp/entry/2020/12/17/laravel-tinker-add-user
+
+
+4 Filament Page を作成
+
+php artisan make:filament-page SiteSetting
+
+[app/Filament/Pages/SiteSetting.php] が作成される。
+
+docker 上で作成したファイルをWin上で編集可能に
+chown -R 1000:1000 *
+
+
+5 Page を編集
+
+<?php
+
+namespace App\Filament\Pages;
+
+use Filament\Pages\Page;
+use Filament\Forms;
+use Filament\Forms\Form;
+use App\Models\Setting;
+use Filament\Notifications\Notification;
+
+class SiteSetting extends Page implements Forms\Contracts\HasForms
+{
+    use Forms\Concerns\InteractsWithForms;
+
+    protected static ?string $navigationIcon = 'heroicon-o-cog-6-tooth';
+
+    protected static ?string $navigationLabel = 'サイト設定';
+
+    protected static ?string $navigationGroup = 'サイト管理';
+
+    protected static string $view = 'filament.pages.site-setting';
+
+    public ?array $data = [];
+
+    public function mount(): void
+    {
+        $setting = Setting::first();
+
+        $this->form->fill($setting->toArray());
+    }
+
+    public function form(Form $form): Form
+    {
+        return $form
+            ->statePath('data')
+            ->schema([
+
+                Forms\Components\TextInput::make('site_name')
+                    ->label('サイト名'),
+
+                Forms\Components\TextInput::make('site_description')
+                    ->label('サイト説明'),
+
+                Forms\Components\TextInput::make('contact_email')
+                    ->label('メール'),
+
+                Forms\Components\FileUpload::make('logo')
+                    ->label('ロゴ')
+                    ->directory('site'),
+
+            ]);
+    }
+
+	public function save()
+	{
+	    $setting = Setting::first();
+
+	    $setting->update($this->form->getState());
+
+	    Notification::make()
+	        ->title('保存しました')
+	        ->success()
+	        ->send();
+	}
+}
+
+
+
+6 Blade View 作成
+resources/views/filament/pages/site-setting.blade.php
+
+
+以下のように編集
+
+<x-filament::page>
+
+<form wire:submit.prevent="save">
+
+    {{ $this->form }}
+
+    <x-filament::button type="submit">
+        保存
+    </x-filament::button>
+
+</form>
+
+</x-filament::page>
+
+
+
+7 管理画面に表示
+/admin/site-setting
+
+
+※Laravel の Mass Assignment　エラーの回避
+Add [site_name] to fillable property to allow mass assignment on [App\Models\Setting].
+
+Setting::update($data);
+
+のような 一括保存を禁止しています。
+
+許可するカラムを
+
+$fillable
+
+で指定します。
+
+
+修正ファイル
+app/Models/Setting.php
+
+修正前
+class Setting extends Model
+{
+    use HasFactory;
+}
+
+↓
+修正後
+
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Setting extends Model
+{
+    protected $fillable = [
+        'site_name',
+        'site_description',
+        'logo',
+        'contact_email',
+    ];
+}
+
+
+
+
+
+
+
+
+■フロントでの使いかあt
+
+フロント側での使い方
+
+例：ヘッダー
+ファイル
+resources/views/layouts/app.blade.php
+
+@php
+$setting = \App\Models\Setting::first();
+@endphp
+
+<title>{{ $setting->site_name }}</title>
+
+
+
+
+
+■Menu（ナビゲーション管理） の実装方法を教えてください
+
+Laravel + Filament で **Menu（ナビゲーション管理）**を実装する方法を、
+**CMSでよく使う構成（実務レベル）**で説明します。
+
+完成すると管理画面でこうなります。
+
+メニュー
+  メニュー一覧
+     ├ ヘッダー
+     └ フッター
+
+メニュー項目
+     ├ ホーム
+     ├ ニュース
+     ├ お問い合わせ
+
+そしてフロントでは
+
+Home | News | Contact
+
+のように表示できます。
+
+① Menuテーブル作成
+php artisan make:model Menu -m
+
+編集
+
+database/migrations/xxxx_create_menus_table.php
+
+chown -R 1000:1000 *
+
+↓
+Schema::create('menus', function (Blueprint $table) {
+    $table->id();
+    $table->string('name'); // ヘッダーなど
+    $table->string('slug')->unique();
+    $table->timestamps();
+});
+
+
+
+② MenuItemテーブル作成
+php artisan make:model MenuItem -m
+
+編集
+
+database/migrations/xxxx_create_menu_items_table.php
+
+chown -R 1000:1000 *
+
+↓
+Schema::create('menu_items', function (Blueprint $table) {
+    $table->id();
+
+    $table->foreignId('menu_id')->constrained()->cascadeOnDelete();
+
+    $table->string('title'); // 表示名
+    $table->string('url');   // リンク
+
+    $table->integer('sort')->default(0);
+
+    $table->timestamps();
+});
+
+
+③ migrate
+php artisan migrate
+↑DBにマイグレーションの定義でテーブル作成
+
+
+④ Modelリレーション
+app/Models/Menu.php
+
+
+class MenuItem extends Model
+{
+    protected $fillable = [
+        'menu_id',
+        'title',
+        'url',
+        'sort',
+        'name',
+        'slug',
+    ];
+
+    public function menu()
+    {
+        return $this->belongsTo(Menu::class);
+    }
+}
+
+
+※ここでフィールド名を設定しないと、メニュー等で保存した時に以下のようなエラーがでる。
+SQLSTATE[HY000]: General error: 1364 Field 'name' doesn't have a default value (Connection: mysql, Host: db, Port: 3306, Database: laravel, SQL: insert into `menus` (`updated_at`, `created_at`) values (2026-03-11 07:09:00, 2026-03-11 07:09:00))
+
+
+
+
+
+⑤ Filament Resource 作成
+
+php artisan make:filament-resource Menu
+
+↓これが作成される。
+[app/Filament/Resources/MenuResource.php] 
+
+以下でWInから編集可能に
+chown -R 1000:1000 *
+
+
+
+use Filament\Forms\Form;
+use Filament\Forms\Components\TextInput;
+
+
+
+public static function form(Form $form): Form
+{
+    return $form
+        ->schema([
+            TextInput::make('name')
+                ->label('メニュー名')
+                ->required(),
+
+            TextInput::make('slug')
+                ->label('スラッグ')
+                ->required()
+                ->unique(ignoreRecord: true),
+        ]);
+}
+
+
+
+
+
+
+
+php artisan make:filament-resource MenuItem
+↓が作成される。
+ [app/Filament/Resources/MenuItemResource.php] 
+
+
+public static function form(Form $form): Form
+{
+    return $form
+        ->schema([
+            Select::make('menu_id')
+                ->relationship('menu', 'name')
+                ->label('メニュー')
+                ->required(),
+
+            TextInput::make('title')
+                ->label('タイトル')
+                ->required(),
+
+            TextInput::make('url')
+                ->label('URL')
+                ->required(),
+
+            TextInput::make('sort')
+                ->label('並び順')
+                ->numeric()
+                ->default(0),
+        ]);
+}
+
+
+
+
+
+⑧ フロント側で表示
+
+例：ヘッダー作成
+resources/views/layouts/header.blade.php
+
+
 
 
 

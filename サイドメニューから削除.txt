@@ -1,0 +1,120 @@
+サイドメニューに 「サイト設定」が２つあり、「一覧」があるサイト設定を削除したいです。どうすればいいのでしょう？
+
+サイドメニューに 「サイト設定」が2つ出る理由は、
+次の 2種類が同時に存在しているためです。
+
+1️⃣ SettingResource（一覧付き）
+→ 「一覧 / 作成 / 編集」がある
+
+2️⃣ SiteSetting Page（今回作った設定ページ）
+→ 単一設定画面
+
+削除するもの
+
+あなたが残すべきなのは
+
+SiteSetting Page
+
+です。
+
+削除するのは
+
+SettingResource
+
+です。
+
+手順
+① Resource を削除
+
+削除するフォルダ
+
+app/Filament/Resources/SettingResource.php
+② Resource フォルダも削除
+app/Filament/Resources/SettingResource/
+
+中にある
+
+Pages/
+
+も削除
+
+例
+
+ListSettings.php
+CreateSetting.php
+EditSetting.php
+削除後の構成
+
+こうなればOKです
+
+app/Filament
+ ├ Pages
+ │   └ SiteSetting.php
+ │
+ └ Resources
+     ├ PageResource
+     ├ NewsResource
+     ├ CategoryResource
+     ├ TagResource
+     └ UserResource
+メニュー表示
+
+管理画面
+
+コンテンツ
+  ページ
+  ニュース
+  カテゴリ
+  タグ
+
+サイト管理
+  サイト設定
+
+システム
+  ユーザー
+念のためキャッシュクリア
+
+削除後
+
+php artisan optimize:clear
+なぜ Resource を消すのか
+
+Resource は
+
+一覧
+作成
+編集
+削除
+
+がある CRUD管理画面です。
+
+しかし Site Setting は1件だけなので
+
+Page
+
+で作るのが正解です。
+
+💡もしよければ、次に
+あなたの CMS を かなり完成度の高い構成にできます。
+
+今すでに
+
+Page
+News
+Category
+Tag
+User
+SiteSetting
+
+まで完成しています。
+
+あと 2つ入れるとプロCMSになります。
+
+Menu（ナビゲーション管理）
+Media（画像管理）
+
+実装すると
+
+ヘッダーメニュー
+フッターメニュー
+画像ライブラリ
