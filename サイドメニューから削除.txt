@@ -1,4 +1,4 @@
-サイドメニューに 「サイト設定」が２つあり、「一覧」があるサイト設定を削除したいです。どうすればいいのでしょう？
+■サイドメニューに 「サイト設定」が２つあり、「一覧」があるサイト設定を削除したいです。どうすればいいのでしょう？
 
 サイドメニューに 「サイト設定」が2つ出る理由は、
 次の 2種類が同時に存在しているためです。
@@ -94,27 +94,19 @@ Page
 
 で作るのが正解です。
 
-💡もしよければ、次に
-あなたの CMS を かなり完成度の高い構成にできます。
 
-今すでに
 
-Page
-News
-Category
-Tag
-User
-SiteSetting
+■サイドメニューグループの並び順
 
-まで完成しています。
+1️⃣ navigationGroup の順番を設定（推奨）
 
-あと 2つ入れるとプロCMSになります。
+app\Providers\Filament\AdminPanelProvider.php
 
-Menu（ナビゲーション管理）
-Media（画像管理）
-
-実装すると
-
-ヘッダーメニュー
-フッターメニュー
-画像ライブラリ
+     ->navigationGroups([
+                NavigationGroup::make()
+                    ->label(__('models.groups.site')),  // サイト管理
+                NavigationGroup::make()
+                    ->label(__('models.groups.content')),  // コンテンツ管理
+                NavigationGroup::make()
+                    ->label(__('models.groups.menu')),  // メニュー管理
+            ])

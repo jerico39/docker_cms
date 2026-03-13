@@ -1,0 +1,57 @@
+https://gemini.google.com/app/c38592c911d6562b?is_sa=1&is_sa=1&android-min-version=301356232&ios-min-version=322.0&campaign_id=bkws&utm_source=sem&utm_source=google&utm_medium=paid-media&utm_medium=cpc&utm_campaign=bkws&utm_campaign=2024jaJP_gemfeb&pt=9008&mt=8&ct=p-growth-sem-bkws&gad_source=1&gad_campaignid=20437330680&gbraid=0AAAAApk5Bhm5UjJf61HFEh13VmkO4KqC0&gclid=CjwKCAjwv5zEBhBwEiwAOg2YKDzWj1i6ykZ_QHp9uCHuILfRonqyw6HFrbZy3kMvNi1TrKX7LEZ3GhoCeTkQAvD_BwE&gclsrc=aw.ds
+
+2026年現在の Copilot は、単なる補完を超えた「エージェント（Copilot Chat）」としての機能が非常に強力になっています。
+
+1. セットアップ（必須の拡張機能）
+VS Code の拡張機能マーケットプレイスから、以下の2つを必ずインストールしてください。
+
+GitHub Copilot: 基本のコード補完。
+
+GitHub Copilot Chat: AIと対話しながら開発するための必須ツール。
+
+また、Laravel 開発を快適にするために以下も併用しましょう。
+
+PHP Intelephense: 静的解析（エラーチェック）を AI に頼りすぎず、正確に行うため。
+
+Laravel Extra Intellisense: AI がファイル構造を把握する手助けになります。
+
+2. Laravel 開発での「Copilot 活用術」
+① インラインチャット (Cmd + I / Ctrl + I)
+コードエディタ上で直接 AI に指示を出せます。
+
+使い方: クラスやメソッド内でショートカットを押し、指示を入力。
+
+指示例: 「Userモデルに、30日以上ログインしていないユーザーを抽出するスコープを追加して」
+
+② 関連ファイルを開いて「文脈」を伝える
+Copilot は「今開いているタブ」を優先的に参照します。
+
+コツ: Controller を書くときは、関連する Model や Migration ファイル も開いておいてください。これにより、テーブルの型やリレーションを正確に把握したコードを生成してくれます。
+
+③ @workspace を活用する (Copilot Chat)
+サイドバーのチャットで @workspace を頭に付けて質問すると、プロジェクト全体をスキャンしてくれます。
+
+質問例: @workspace このプロジェクトの認証（Auth）の仕組みはどうなってる？
+
+質問例: @workspace 新しく 'Post' 機能を実装したいんだけど、既存の 'Comment' 機能を参考にして必要なファイル一式を提案して。
+
+
+
+
+
+3. 実践：爆速ワークフロー例
+DB設計: database/migrations/xxx_create_posts_table.php を作成し、カラム名を数文字打つと Copilot が型（string, foreignIdなど）を予測補完してくれます。
+
+ビジネスロジック: Controller でメソッド名（例：public function store）を書くと、バリデーションから保存処理までを一気に提案してくれます。
+
+テストコード: テストファイルを作成し、// Test that a user can create a post とコメントを書くだけで、テストコードの本体が生成されます。
+
+4. 注意点：ここだけは「手動」が安全
+AI はたまに存在しない Laravel のメソッド（ハルシネーション）を提案することがあります。
+
+Artisan コマンド: php artisan は AI に聞くだけにして、実行は自分の目で確認してからターミナルで行いましょう。
+
+ルート定義: routes/web.php などは、意図しない URL が公開されないよう、AI の提案をしっかりレビューしてください。
+
+まずは何を作ってみますか？
+もし具体的な機能（例：お問い合わせフォーム、API実装など）があれば、それに合わせた**「AIへの投げ方（プロンプト）」**を具体的にお教えします！
