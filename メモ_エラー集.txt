@@ -1,0 +1,140 @@
+■Front TOPで以下のエラー
+
+ErrorException:
+tempnam(): file created in the system's temporary directory
+
+  at /var/www/cms/vendor/laravel/framework/src/Illuminate/Filesystem/Filesystem.php:222
+  at Illuminate\Foundation\Bootstrap\HandleExceptions->handleError(8, 'tempnam(): file created in the system\'s temporary directory', '/var/www/cms/vendor/laravel/framework/src/Illuminate/Filesystem/Filesystem.php', 222)
+     (/var/www/cms/vendor/laravel/framework/src/Illuminate/Foundation/Bootstrap/HandleExceptions.php:258)
+  at Illuminate\Foundation\Bootstrap\HandleExceptions->Illuminate\Foundation\Bootstrap\{closure}(8, 'tempnam(): file created in the system\'s temporary directory', '/var/www/cms/vendor/laravel/framework/src/Illuminate/Filesystem/Filesystem.php', 222)
+  at tempnam('/var/www/cms/storage/framework/views', '21432b8d17fa7ef23db2b6b7e90c2ff1.php')
+     (/var/www/cms/vendor/laravel/framework/src/Illuminate/Filesystem/Filesystem.php:222)
+  at Illuminate\Filesystem\Filesystem->replace('/var/www/cms/storage/framework/views/21432b8d17fa7ef23db2b6b7e90c2ff1.php', '# <?php echo e($exception->class()); ?> - <?php echo $exception->title(); ?><?php echo $exception->message(); ?>PHP <?php echo e(PHP_VERSION); ?>Laravel <?php echo e(app()->version()); ?><?php echo e($exception->request()->httpHost()); ?>## Stack Trace<?php if(\\Livewire\\Mechanisms\\ExtendBlade\\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $exception->frames(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $frame): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?><?php echo e($index); ?> - <?php echo e($frame->file()); ?>:<?php echo e($frame->line()); ?><?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\\Livewire\\Mechanisms\\ExtendBlade\\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>## Request<?php echo e($exception->request()->method()); ?> <?php echo e(\\Illuminate\\Support\\Str::start($exception->request()->path(), \'/\')); ?>## Headers<?php if(\\Livewire\\Mechanisms\\ExtendBlade\\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__empty_1 = true; $__currentLoopData = $exception->requestHeaders(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key => $value): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>* **<?php echo e($key); ?>**: <?php echo $value; ?><?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>No header data available.<?php endif; ?><?php if(\\Livewire\\Mechanisms\\ExtendBlade\\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>## Route Context<?php if(\\Livewire\\Mechanisms\\ExtendBlade\\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__empty_1 = true; $__currentLoopData = $exception->applicationRouteContext(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $name => $value): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?><?php echo e($name); ?>: <?php echo $value; ?><?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>No routing data available.<?php endif; ?><?php if(\\Livewire\\Mechanisms\\ExtendBlade\\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>## Route Parameters<?php if(\\Livewire\\Mechanisms\\ExtendBlade\\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($routeParametersContext = $exception->applicationRouteParametersContext()): ?><?php echo $routeParametersContext; ?><?php else: ?>No route parameter data available.<?php endif; ?><?php if(\\Livewire\\Mechanisms\\ExtendBlade\\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>## Database Queries<?php if(\\Livewire\\Mechanisms\\ExtendBlade\\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__empty_1 = true; $__currentLoopData = $exception->applicationQueries(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as [\'connectionName\' => $connectionName, \'sql\' => $sql, \'time\' => $time]): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>* <?php echo e($connectionName); ?> - <?php echo $sql; ?> (<?php echo e($time); ?> ms)<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>No database queries detected.<?php endif; ?><?php if(\\Livewire\\Mechanisms\\ExtendBlade\\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?><?php /**PATH /var/www/cms/vendor/laravel/framework/src/Illuminate/Foundation/Providers/../resources/exceptions/renderer/markdown.blade.php ENDPATH**/ ?>')
+     (/var/www/cms/vendor/laravel/framework/src/Illuminate/View/Compilers/BladeCompiler.php:199)
+  at Illuminate\View\Compilers\BladeCompiler->compile('/var/www/cms/vendor/laravel/framework/src/Illuminate/Foundation/Providers/../resources/exceptions/renderer/markdown.blade.php')
+     (/var/www/cms/vendor/laravel/framework/src/Illuminate/View/Engines/CompilerEngine.php:68)
+  at Illuminate\View\Engines\CompilerEngine->get('/var/www/cms/vendor/laravel/framework/src/Illuminate/Foundation/Providers/../resources/exceptions/renderer/markdown.blade.php', array('__env' => object(Factory), 'app' => object(Application), 'errors' => object(ViewErrorBag), 'exception' => object(Exception), 'menus' => object(Collection)))
+     (/var/www/cms/vendor/livewire/livewire/src/Mechanisms/ExtendBlade/ExtendedCompilerEngine.php:10)
+  at Livewire\Mechanisms\ExtendBlade\ExtendedCompilerEngine->get('/var/www/cms/vendor/laravel/framework/src/Illuminate/Foundation/Providers/../resources/exceptions/renderer/markdown.blade.php', array('__env' => object(Factory), 'app' => object(Application), 'errors' => object(ViewErrorBag), 'exception' => object(Exception), 'menus' => object(Collection)))
+     (/var/www/cms/vendor/laravel/framework/src/Illuminate/View/View.php:208)
+  at Illuminate\View\View->getContents()
+     (/var/www/cms/vendor/laravel/framework/src/Illuminate/View/View.php:191)
+  at Illuminate\View\View->renderContents()
+     (/var/www/cms/vendor/laravel/framework/src/Illuminate/View/View.php:160)
+  at Illuminate\View\View->render()
+     (/var/www/cms/vendor/laravel/framework/src/Illuminate/Foundation/Exceptions/Renderer/Renderer.php:95)
+  at Illuminate\Foundation\Exceptions\Renderer\Renderer->render(object(Request), object(UnexpectedValueException))
+     (/var/www/cms/vendor/laravel/framework/src/Illuminate/Foundation/Exceptions/Handler.php:879)
+  at Illuminate\Foundation\Exceptions\Handler->renderExceptionContent(object(UnexpectedValueException))
+     (/var/www/cms/vendor/laravel/framework/src/Illuminate/Foundation/Exceptions/Handler.php:860)
+  at Illuminate\Foundation\Exceptions\Handler->convertExceptionToResponse(object(UnexpectedValueException))
+     (/var/www/cms/vendor/laravel/framework/src/Illuminate/Foundation/Exceptions/Handler.php:839)
+  at Illuminate\Foundation\Exceptions\Handler->prepareResponse(object(Request), object(UnexpectedValueException))
+     (/var/www/cms/vendor/laravel/framework/src/Illuminate/Foundation/Exceptions/Handler.php:738)
+  at Illuminate\Foundation\Exceptions\Handler->renderExceptionResponse(object(Request), object(UnexpectedValueException))
+     (/var/www/cms/vendor/laravel/framework/src/Illuminate/Foundation/Exceptions/Handler.php:626)
+  at Illuminate\Foundation\Exceptions\Handler->render(object(Request), object(UnexpectedValueException))
+     (/var/www/cms/vendor/laravel/framework/src/Illuminate/Foundation/Bootstrap/HandleExceptions.php:221)
+  at Illuminate\Foundation\Bootstrap\HandleExceptions->renderHttpResponse(object(UnexpectedValueException))
+     (/var/www/cms/vendor/laravel/framework/src/Illuminate/Foundation/Bootstrap/HandleExceptions.php:198)
+  at Illuminate\Foundation\Bootstrap\HandleExceptions->handleException(object(UnexpectedValueException))
+     (/var/www/cms/vendor/laravel/framework/src/Illuminate/Foundation/Bootstrap/HandleExceptions.php:258)
+  at Illuminate\Foundation\Bootstrap\HandleExceptions->Illuminate\Foundation\Bootstrap\{closure}(object(UnexpectedValueException))  
+  
+  
+  
+  ・解決
+chmod -R 777 storage
+chmod -R 777 bootstrap/cache
+
+rm -rf storage/framework/views
+mkdir -p storage/framework/views
+chmod -R 777 storage/framework/views
+
+php artisan optimize:clea
+
+
+■管理画面で画像を保存できない。
+
+■原因以下がアップロードのパラメタに手必要
+->storeFiles()
+
+完成形👇
+Forms\Components\FileUpload::make('logo')
+    ->label(columnLabel('logo'))
+    ->image()
+    ->directory('site')
+    ->disk('public')
+    ->multiple(false)
+    ->preserveFilenames()
+    ->storeFiles()
+    
+    
+    
+■管理画面のメニューをクリックすると、以下のエラー
+# Error - Internal Server Error
+
+Class "App\Filament\Resources\TextColumn" not found
+
+PHP 8.2.30
+Laravel 12.53.0
+localhost:8000
+
+## Stack Trace
+
+0 - app/Filament/Resources/SurveyResource.php:47
+1 - vendor/filament/filament/src/Resources/Pages/ListRecords.php:81
+
+
+■解決方法
+SurveyResource.php の上に use を追加👇
+
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables;
+
+
+その他ついでにいれといたらいいやつ
+use Filament\Forms;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\DateTimePicker;
+
+
+■php artisan migrate で以下のエラー
+ 2026_03_19_145005_create_survey_options_table ................ 106.75ms FAIL Illuminate\Database\QueryException SQLSTATE[HY000]: General error: 1824 Failed to open the referenced table 'surv eys' (Connection: mysql, Host: db, Port: 3306, Database: laravel, SQL: alter tab le survey_options add constraint survey_options_survey_id_foreign foreign ke y (survey_id) references surveys (id) on delete cascade)
+
+
+■原因
+Failed to open the referenced table 'surveys'
+
+migrationによるテーブル作成順が異なる。
+ survey_options（先）
+↓
+❌ surveys（まだ無い）
+
+なので
+
+$table->foreignId('survey_id')->constrained();
+
+
+■解決
+本来は
+surveys
+
+survey_options
+
+survey_votes
+
+survey_comments
+
+の順番で作成されなければならないテーブルが、先にoptionテーブルが出来てしまった。
+
+
+解決方法
+ファイル名の頭の日時を変えて、ファイル名を理想通りの昇順にする。
+それからmigrate
+
+「既にテーブルが存在している」関連のエラーが発生したら、その先に誤って作成されたテーブルをDROPしてやる。
+
+
