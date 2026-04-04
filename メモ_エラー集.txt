@@ -138,3 +138,28 @@ survey_comments
 「既にテーブルが存在している」関連のエラーが発生したら、その先に誤って作成されたテーブルをDROPしてやる。
 
 
+
+
+■現象
+フロントで表示をクリックすると以下のエラーになりました。
+ # Error - Internal Server Error Class "App\Http\Controllers\Survey" not found PHP 8.2.30 Laravel 12.53.0 localhost:8000 ## Stack Trace 0 - app/Http/Controllers/SurveyController.php:11 1 -
+ 
+ 
+ ❌ エラーの原因
+Class "App\Http\Controllers\Survey" not found
+
+👉 Controllerの中で
+
+Survey::〜
+
+を書いているのに、
+
+👉 Modelのuse宣言が無い
+
+✅ 解決方法（これだけ）
+
+📄 app/Http/Controllers/SurveyController.php
+
+上にこれを追加👇
+
+use App\Models\Survey;
