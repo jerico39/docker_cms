@@ -1,3 +1,21 @@
+git cloneからpullが出来ない場合
+
+bash で以下のコマンド絵
+※環境によってディレクトリが異なる
+git config --global --add safe.directory '%(prefix)///wsl.localhost/Ubuntu/home/docker_cms'
+
+
+
+srcディレクトリ内で以下のコマンドを実行し、PULL
+※環境によってディレクトリが異なる
+git clone -b master https://github.com/jerico39/laravel_cms.git cms
+
+
+
+
+
+
+
 設定したユーザー
 user
 wakai39@gmail.com
