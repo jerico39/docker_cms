@@ -6,6 +6,9 @@ git config --global --add safe.directory '%(prefix)///wsl.localhost/Ubuntu/home/
 
 
 
+git config --global --add safe.directory '%(prefix)///wsl.localhost/Ubuntu/home/docker_cms/src/cms'
+
+
 srcディレクトリ内で以下のコマンドを実行し、PULL
 ※環境によってディレクトリが異なる
 git clone -b master https://github.com/jerico39/laravel_cms.git cms
@@ -90,6 +93,12 @@ composer create-project laravel/laravel cms
 .env　のDB変更
 
 
+・フィルメントのインストール(git pull後でもOK)
+composer require filament/filament
+
+★フィルメントのユーザーを作成するコマンド
+php artisan make:filament-user
+
 
 
 cd cms
@@ -115,6 +124,16 @@ SQLSTATE[42S02]: Base table or view not found: 1146 Table 'laravel.sessions' doe
 php artisan session:table
 php artisan migrate
 
+
+※ディレクトリ不在でよくあるエラ-の場合、以下を実行
+mkdir -p storage/framework/views
+mkdir -p storage/framework/cache
+mkdir -p storage/framework/sessions
+mkdir -p bootstrap/cache
+
+
+chmod -R 775 storage
+chmod -R 775 bootstrap/cache
 
 →TOPが見えるようになる。
 

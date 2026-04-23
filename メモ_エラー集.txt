@@ -51,7 +51,7 @@ rm -rf storage/framework/views
 mkdir -p storage/framework/views
 chmod -R 777 storage/framework/views
 
-php artisan optimize:clea
+php artisan optimize:clear
 
 
 ■管理画面で画像を保存できない。
@@ -163,3 +163,20 @@ Survey::〜
 上にこれを追加👇
 
 use App\Models\Survey;
+
+
+
+■
+# Error - Internal Server Error
+
+Call to undefined function App\Filament\Resources\modelLabel()
+
+PHP 8.2.30
+Laravel 12.53.0
+localhost:8000
+
+## Stack Trace
+
+0 - app/Filament/Resources/PageResource.php:55
+1 - vendor/filament/filament/src/Resources/Resource.php:165
+2 - vendor/filament/filament/src/Resources/Resource.php:156
