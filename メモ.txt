@@ -1,3 +1,7 @@
+
+
+
+
 git cloneからpullが出来ない場合
 
 bash で以下のコマンド絵
@@ -13,6 +17,12 @@ srcディレクトリ内で以下のコマンドを実行し、PULL
 ※環境によってディレクトリが異なる
 git clone -b master https://github.com/jerico39/laravel_cms.git cms
 
+
+
+
+WSLのバージョンUPを忘れがち
+sudo apt update
+sudo apt install php
 
 
 

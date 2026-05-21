@@ -1,0 +1,60 @@
+
+Xdrnugのインストール調査
+
+環境を直接確認します。PHPとXdebugのインストール状況をターミナルで確認します。
+	
+cd /home/docker_cms/src/cms ; pwd ; php -v ; php -m | grep -i xdebug ; true ; php --ini
+
+
+
+WSLパス経由でPHP環境を確認します。
+wsl.exe -d Ubuntu -- bash -lc 'cd /home/docker_cms/src/cms ; php -v ; php -m | grep -i xdebug ; true ; php --ini'
+
+
+
+
+
+
+
+
+
+VS CODE
+
+launch.json
+↓
+
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Listen for Xdebug",
+      "type": "php",
+      "request": "launch",
+      "port": 9003,
+      "stopOnEntry": false,
+      "pathMappings": {
+        "${workspaceFolder}": "${workspaceFolder}"
+      },
+      "xdebugSettings": {
+        "max_children": 256,
+        "max_data": 1024,
+        "max_depth": 3
+      }
+    }
+  ]
+}
+
+
+
+
+
+
+以下を追加しました。
+
+launch.json
+
+Listen for Xdebug でポート 9003 を待ち受け
+ステップ実行用の VS Code デバッグ構成
+extensions.json
+
+felixfbecker.php-debug を推奨拡張機能として追加
