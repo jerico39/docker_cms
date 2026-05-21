@@ -4,25 +4,30 @@ bash で以下のコマンド絵
 ※環境によってディレクトリが異なる
 git config --global --add safe.directory '%(prefix)///wsl.localhost/Ubuntu/home/docker_cms'
 
-
-
 git config --global --add safe.directory '%(prefix)///wsl.localhost/Ubuntu/home/docker_cms/src/cms'
 
 
+=================================================
 srcディレクトリ内で以下のコマンドを実行し、PULL
 ※環境によってディレクトリが異なる
 git clone -b master https://github.com/jerico39/laravel_cms.git cms
 
 
 
+■環境設置毎に必要
+・フィルメントのインストール(git pull後でもOK)
+composer require filament/filament
 
-
+★フィルメントのユーザーを作成するコマンド
+php artisan make:filament-user
 
 
 設定したユーザー
 user
 wakai39@gmail.com
 test22
+
+
 
 
 用語の指すファイルの保管場所
@@ -93,12 +98,6 @@ composer create-project laravel/laravel cms
 .env　のDB変更
 
 
-・フィルメントのインストール(git pull後でもOK)
-composer require filament/filament
-
-★フィルメントのユーザーを作成するコマンド
-php artisan make:filament-user
-
 
 
 cd cms
@@ -106,7 +105,13 @@ cd cms
 ・設定更新
 php artisan config:clear
 
+
+
 TOPに接続
+■エラー
+InvalidArgumentException:
+Please provide a valid cache path.
+
 
 ■エラー
 tempnam(): file created in the system's temporary directory
@@ -114,6 +119,10 @@ tempnam(): file created in the system's temporary directory
 ＞以下のコマンドで解消
 chown -R www-data:www-data /var/www/cms/storage /var/www/cms/bootstrap/cache
 chmod -R 775 /var/www/cms/storage /var/www/cms/bootstrap/cache
+
+
+
+
 
 ■エラー
 Illuminate\Database\QueryException

@@ -3,9 +3,11 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports:
       - "8000:80"
-      - "9003:9003"  #Xdebug
+     ## - "9003:9003"  #Xdebug
     volumes:
       - ./src:/var/www
       - ./setting/php/php.ini:/usr/local/etc/php/php.ini

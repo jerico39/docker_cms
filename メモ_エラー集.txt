@@ -1,3 +1,20 @@
+
+
+■エラー
+InvalidArgumentException
+HTTP 500 Internal Server Error
+Please provide a valid cache path.
+
+
+
+■解決：以下のコマンドで不足ディレクトリを作成する。
+mkdir -p storage/framework/cache/data/
+mkdir -p storage/framework/app/cache
+mkdir -p storage/framework/sessions
+mkdir -p storage/framework/views
+
+
+
 ■Front TOPで以下のエラー
 
 ErrorException:
