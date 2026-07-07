@@ -25,10 +25,34 @@ srcディレクトリ内で以下のコマンドを実行し、PULL
 git clone -b master https://github.com/jerico39/laravel_cms.git cms
 
 
+docker 起動
+
 
 ■環境設置毎に必要
+
+インストール
+composer create-project laravel/laravel cms
+
+
 ・フィルメントのインストール(git pull後でもOK)
 composer require filament/filament
+
+↓エラー
+
+以下を実行
+mkdir -p storage/framework/views
+mkdir -p storage/framework/cache/data
+mkdir -p storage/framework/sessions
+chmod -R ug+rw storage bootstrap/cache
+
+
+
+DB作成
+php artisan migrate
+php artisan migrate:status
+php artisan config:clear
+php artisan cache:clear
+
 
 ★フィルメントのユーザーを作成するコマンド
 php artisan make:filament-user
@@ -38,6 +62,7 @@ php artisan make:filament-user
 user
 wakai39@gmail.com
 test22
+
 
 
 
