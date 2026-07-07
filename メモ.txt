@@ -1,3 +1,15 @@
+TOP
+http://localhost:8000/
+
+管理画面
+http://localhost:8000/admin/
+
+
+設定したユーザー
+user
+wakai39@gmail.com
+test22
+
 git cloneからpullが出来ない場合
 
 bash で以下のコマンド絵
