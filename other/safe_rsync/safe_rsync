@@ -1,0 +1,332 @@
+#!/bin/sh
+
+ConfFile="safe_rsync.conf"
+
+# $1: branch
+branch="${1:-master}"
+###branch="${1:-feature/php8}"
+
+function git_pull {
+    cd ${Source}
+
+	##gitがインストールされているか？
+	which git >/dev/null 2>&1
+	if [ $? -eq 0 ]; then
+		GITMSG="git はインストールされているので同期します。\nブランチ名「$branch」"
+		echo "git fetch origin" && git fetch origin && 
+		echo "git reset --hard origin/$branch" && git reset --hard origin/$branch || exit 1
+	else
+		GITMSG="git はインストールされていません。\nディレクトリ「$Source」 に更新対象ファイルをアップロードしてから実行してください"
+	fi
+
+
+
+    ##diff-rusult.txt へファイル差分の出力
+    diff -ruw --exclude-from=$EXCLUDEFILE $Destination $Source | grep -v "^Only in" | grep -v "^Binary files" >  $Home/diff-result.txt
+	echo "差分をdiff-result.txtへ出力"
+}
+
+# メール送信メイン
+function sendmail {
+    /usr/sbin/sendmail -t << EOF
+To: $1
+From: $2
+Subject: $3
+X-ECD-HOST:$HOSTNAME
+X-ECD-SEND:`basename $0`
+Content-Type:text/plain;charset=UTF-8;
+
+$4
+EOF
+}
+
+# 処理終了後メール送信
+rsync_sendmail() {
+
+  local PROGRAM=`basename $0`
+  local MAILFROM="$PROGRAM at $HOSTNAME <$USER@$HOSTNAME>"
+
+  # 宛先は引数で受ける
+  local MAILTO=${RSYNC_MAILTO}
+  local SUBJECT="[$HOSTNAME] rsync result"
+  local MAILBODY=`cat $1`
+
+  #sendmail "${MAILTO}" "${MAILFROM}" "${SUBJECT}"  "${MAILBODY}"
+}
+
+
+#後始末してから終了する。
+byebye() {
+    rm -rf $TEMPFILEDIR >& /dev/null
+    exit
+}
+
+#ログ保存ディレクトリが無ければ作る。
+make_a_log_direcory_if_not_exist() {
+    if [ ! -d $LogFileDirectory ]; then
+        mkdir $LogFileDirectory
+        if [ $? -ne 0 ]; then
+            echo "ERROR -- ログファイルディレクトリが作れませんでした。"
+            byebye
+        fi
+    fi
+}
+
+#実行記録開始の目印
+header_log() {
+    echo "================ <rsync result> $branch => $Destination : $1  =================="
+}
+
+#実行記録終了の目印
+footer_log() {
+    echo -en "\n\n"
+}
+
+#実際にrsyncを呼び出すコマンドライン
+echo_rsync_cmdline() {
+    echo "$rsync $rsyncOption $rsyncBackupOption/${RsyncLogFile}${DATETIME} $1 \"--exclude-from=$EXCLUDEFILE\" $Source $Destination"
+}
+
+
+
+#rsync実行
+do_rsync() {
+
+    eval `echo_rsync_cmdline $1`
+}
+
+#rsyncのdry-run
+rsync_dry_run() {
+    do_rsync  "-n"
+}
+
+#実行記録を取りながらrsync実行
+do_rsync_with_log() {
+    local DATETIME=`date "$LogFileTimeStamp"`
+    ##local LOGFILE="$LogFileDirectory/${RsyncLogFile}${DATETIME}_${branch}.log"
+    #ブランチにスラッシュを含むとパスが狂いログが残らないのでブランチ名削除
+    local LOGFILE="$LogFileDirectory/${RsyncLogFile}${DATETIME}.log"
+    
+    
+    header_log $DATETIME >> $LOGFILE
+    do_rsync | tee -a $LOGFILE
+    footer_log | tee -a $LOGFILE
+    echo "結果は\"$LOGFILE\"に記録されました。"
+    rsync_sendmail $LOGFILE
+}
+
+#dry-runの結果を未実行記録へ
+do_not_rsync_with_log() {
+    local DATETIME=`date "$LogFileTimeStamp"`
+    ##local DONOTRSYNCLOGFILE="$LogFileDirectory/${DonotRsyncLogFile}${DATETIME}_${branch}.log"
+    #ブランチにスラッシュを含むとパスが狂いログが残らないのでブランチ名削除
+	local DONOTRSYNCLOGFILE="$LogFileDirectory/${DonotRsyncLogFile}${DATETIME}.log"
+    header_log $DATETIME >> $DONOTRSYNCLOGFILE
+    cat $DRYRUNFILE >> $DONOTRSYNCLOGFILE
+    footer_log >> $DONOTRSYNCLOGFILE
+    echo "結果は\"$DONOTRSYNCLOGFILE\"に記録されました。"
+}
+
+#ユーザに覚悟を要求する
+do_dialogue() {
+    grep 'deleting' $DRYRUNFILE > /dev/null
+    if [ $? -eq 0 ]; then
+        # delete
+        MSG="+++++++ rsync will DELETE some files or directories. Do you want to continue? +++++++"
+    else
+        # not delete
+        MSG="+++++++ Do you want to continue rsync? +++++++"
+    fi
+    while [ 1 ]; do
+      echo ""
+      echo $MSG
+      echo "[Y/y]es    : Run rsync with log"
+      echo "[N/n]o     : Output log only, do not run rsync"
+      echo "[C/c]ancel : Cancel (do nothing)"
+      echo "[E/e]cho   : Confirm command line"
+      echo "[V/v]iew   : View excluded files"
+      echo -n "Please input [y/n/c/e/v]:"
+      read line
+      case $line in
+      [Yy])
+        echo "Run rsync with log"
+        do_rsync_with_log
+        break
+        ;;
+      [Nn])
+        echo "Ouput log";
+        do_not_rsync_with_log
+        break
+        ;;
+       [Cc])
+        echo "Canceled rsync";
+        break
+        ;;
+        [Ee])
+        echo_rsync_cmdline
+        echo ""
+        ;;
+        [Vv])
+        vim -R $EXCLUDEFILE
+        ;;
+      esac
+    done
+    return
+}
+
+#仕様説明を表示して終了する
+usage() {
+    echo "仕様説明です。"
+    echo "使い方 : $0 [OPTION]"
+    echo "options"
+    echo "-h"
+    echo "-v"
+    echo "--color=off"
+    echo "--visual=off"
+}
+
+#このシェルから受け取ったオプションを解釈する
+read_option() {
+    while [ $# -gt 0 ]; do
+        case $1 in
+        "-h")
+            usage
+            byebye
+            ;;
+        "-v")
+            echo "safe_rsync version $Version"
+            byebye
+            ;;
+        "--color=off")
+            echo "no color mode."
+            HIGHLIGHTCOLOR=""
+            NORMCOLOR=""
+            ;;
+        "--pager=off")
+            echo "no pager mode."
+            PAGERMODE=0
+            ;;
+        *)
+            ;;
+        esac
+        shift
+    done
+
+	echo -e $GITMSG
+}
+
+#confファイルを読んだりファイルを用意したりとか、実行前準備
+prepare() {
+    #ConfFileの行を走査してこのスクリプトの変数に代入する
+    for line in `sed "/^#/d;/^[ \t]*$/d;s/^\W*\(\w*\)\W*=\W*\"\(.*\)\"\W*$/\1=\"\2\"/;s/ /\&nbsp;/g" $ConfFile`;do
+         eval `echo $line|sed "s/&nbsp;/ /g"`
+    done
+    # 以下confファイルの変数確認（消さないように。）
+    echo ""
+    echo "git branch         "${branch?"変数が定義されていません"}
+    echo "confファイル       "${ConfFile?"変数が定義されていません"}
+    echo "Sync元             "${Source?"変数が定義されていません"}
+    echo "Sync先             "${Destination?"変数が定義されていません"}
+    echo "rsync              "${rsync?"変数が定義されていません"}
+    echo "rsyncOption        "${rsyncOption?"変数が定義されていません"}
+    echo "除外ファイル       "${DefaultExcludeFile?"変数が定義されていません"}
+    echo "ログディレクトリ   "${LogFileDirectory?"変数が定義されていません"}
+    echo "タイムスタンプ     "${LogFileTimeStamp?"変数が定義されていません"}
+    echo "ログファイル       "${RsyncLogFile?"変数が定義されていません"}
+    echo "未実行ログファイル "${DonotRsyncLogFile?"変数が定義されていません"}
+
+    echo ""
+    echo "$rsync $Source --> $Destination"
+    echo ""
+
+
+
+
+    mkdir $TEMPFILEDIR
+    make_a_log_direcory_if_not_exist
+    # exclude fileを用意する
+    # $EXCLUDEFILEが無ければデフォルトファイルをコピーして用意する
+    if [ ! -e $EXCLUDEFILE ]; then
+        cp $DefaultExcludeFile $EXCLUDEFILE
+        if [ $? -ne 0 ]; then
+            echo "ERROR -- I can't prepare the $EXCLUDEFILE file."
+            byebye
+        fi
+    fi
+}
+
+# 単純にコンソールにファイルリストを表示する
+no_pager_mode() {
+    echo -en $HIGHLIGHTCOLOR
+    # deleting行を目立たせる
+    sed "s/\(^.*deleting.*$\)/--> \1/" $DRYRUNFILE
+    echo -en $NORMCOLOR
+    echo ""
+}
+
+# 高機能版
+pager_mode() {
+    local SyncFileList="$TEMPFILEDIR/SyncFileList.txt"
+    sed -n '1d;/^$/q;/^$/!p' $DRYRUNFILE > $SyncFileList
+    local before=`\ls -l $EXCLUDEFILE`
+    # vimスクリプトによって$SyncFileListから$EXCLUDEFILEを作る
+    vim "+let g:ExcludeFile=\"$EXCLUDEFILE\"" "+source $Home/gen_excfile.vim" "+0" $SyncFileList
+    local after=`\ls -l $EXCLUDEFILE`
+    if [ "$before" = "$after" ]; then
+        #変更なし
+        return 0
+    else
+        #変更あり
+        return 1
+    fi
+}
+
+# このスクリプトの本体
+run_safe_rsync() {
+    # dry-runの結果、変更されるファイル／ディレクトリのリストを得て
+    # それをユーザーに見せて
+    # ユーザーと対話して
+    # 条件が変更されると始めからもう一度
+    while [ 1 ]; do
+        # dry-run
+        rsync_dry_run | sed '/backup_dir/d' > $DRYRUNFILE
+        if [  `sed -n '1d;/^$/q;/^$/!p' $DRYRUNFILE | wc -l` -eq 0 ]; then
+            # 1行目と空行から後ろを消した残りの行数が0であれば実行する必要なし
+            # no updated
+            echo "Already up to date.";
+            break
+        else
+            # アップロードされるファイルまたは削除されるファイルのリストを表示する。
+            if [ $PAGERMODE -eq 0 ]; then
+                no_pager_mode
+                do_dialogue
+                break
+           else
+                pager_mode
+                if [ $? -eq 0 ]; then
+                    #変更なし
+                    do_dialogue
+                    break
+                fi
+                #変更あればもう一度ループ
+            fi
+        fi
+    done
+}
+
+#
+#ここから実行される
+#
+
+# 実行前準備
+prepare
+
+git_pull "$@"
+
+# シェル引数を解読
+read_option $@
+
+# 実行
+run_safe_rsync 
+
+byebye

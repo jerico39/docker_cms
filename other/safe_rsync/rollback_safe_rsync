@@ -1,0 +1,63 @@
+#! /bin/bash
+
+#Usage: rollback_safe_rsync backup/rsync_20200131_12h59m05s
+
+ConfFile="safe_rsync.conf"
+
+##Des="/var/www/html"
+##Home="/home/petabit-user/safe_rsync"
+
+
+
+#ConfFileの行を走査してこのスクリプトの変数に代入する
+for line in `sed "/^#/d;/^[ \t]*$/d;s/^\W*\(\w*\)\W*=\W*\"\(.*\)\"\W*$/\1=\"\2\"/;s/ /\&nbsp;/g" $ConfFile`;do
+        eval `echo $line|sed "s/&nbsp;/ /g"`
+done
+    
+
+#check parameter
+if [ $# -eq 0 ] ; then
+    echo "Usage: rollback_safe_rsync backup_dir"
+    echo
+    exit
+fi
+
+Src=$1
+#check directory
+if [[ ! -d $Src ]]; then
+        echo "Error: Directory $Src does not exist"
+        exit
+fi
+
+echo -e "Rollback $Src --> $Destination :\n"
+echo "Files to be copied:"
+find $Src -type f -printf "%P\n" |  \
+xargs -n1 -i sh -c "diff $Src/{} $Destination/{} > /dev/null 2>&1 && echo {} || echo -e '\e[1;31m{}\e[0m'"
+
+#comfirm continue
+  while [ 1 ]; do
+      echo -ne "\nAre you sure you want to continue (y/n)? "
+      read line
+      case $line in
+      [Yy])
+        break
+        ;;
+      [Nn])
+        exit
+        ;;
+      esac
+    done
+
+#log
+echo
+log="$Home/logs/rollback_`date +%Y%m%d_%Hh%Mm%Ss`.log"
+##echo -e "Rollback $Src --> $Destination :\n" > $log
+echo -e "Rollback $Src --> $Destination :\n" > $log
+
+#pushd . >/dev/null && cd $Src && find . -type f -print >> $log && popd >/dev/null
+
+#copy
+cp -rv $Src/* $Destination/ | tee -a $log
+
+echo -e "\nDone" | tee -a $log
+

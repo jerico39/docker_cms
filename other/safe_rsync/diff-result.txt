@@ -1,0 +1,104 @@
+/home/nyj94/nyj94.xsrv.jp/cms-app のみに存在: .npmrc
+diff -ruw '--exclude-from=/tmp/safe_rsync_2026-07-26_08:21:50/exclude_pattern' /home/nyj94/nyj94.xsrv.jp/cms-app/app/Providers/Filament/AdminPanelProvider.php /home/nyj94/nyj94.xsrv.jp/safe_rsync/source/app/Providers/Filament/AdminPanelProvider.php
+--- /home/nyj94/nyj94.xsrv.jp/cms-app/app/Providers/Filament/AdminPanelProvider.php	2026-07-26 08:21:23.000000000 +0900
++++ /home/nyj94/nyj94.xsrv.jp/safe_rsync/source/app/Providers/Filament/AdminPanelProvider.php	2026-07-25 02:10:07.239318439 +0900
+@@ -18,26 +18,46 @@
+ use Illuminate\Session\Middleware\StartSession;
+ use Illuminate\View\Middleware\ShareErrorsFromSession;
+ 
++use Filament\Navigation\NavigationGroup;
++use Filament\View\PanelsRenderHook;
++
++use Filament\Support\Facades\FilamentView;
++use Illuminate\Support\HtmlString;
++
+ class AdminPanelProvider extends PanelProvider
+ {
++
++    public function boot() //202
++    {
++        // フッターのクレジットやリンクを含むクラスを非表示にするCSSを注入
++        FilamentView::registerRenderHook(
++            'panels::footer.before',
++            fn (): HtmlString => new HtmlString('<style>.fi-footer { display: none !important; }</style>'),
++        );
++    }
++
+     public function panel(Panel $panel): Panel
+     {
+         return $panel
+-        	->default()
++            //->default()
++            ->brandName('バックオフィス') // ロゴやブランド名
++            //->brandLogo(asset('images/logo.svg'))
+             ->id('admin')
+             ->path('admin')
++            ->login()
+             ->colors([
+                 'primary' => Color::Amber,
++                //'primary' => Color::Indigo,
+             ])
+-            ->discoverResources(in: app_path('Filament/Admin/Resources'), for: 'App\\Filament\\Admin\\Resources')
+-            ->discoverPages(in: app_path('Filament/Admin/Pages'), for: 'App\\Filament\\Admin\\Pages')
++            ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
++            ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
+             ->pages([
+                 Pages\Dashboard::class,
+             ])
+-            ->discoverWidgets(in: app_path('Filament/Admin/Widgets'), for: 'App\\Filament\\Admin\\Widgets')
++            ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
+             ->widgets([
+-                Widgets\AccountWidget::class,
+-                Widgets\FilamentInfoWidget::class,
++               // Widgets\AccountWidget::class,   // 「ようこそ」カード
++               // Widgets\FilamentInfoWidget::class,  // 「Filamentロゴ / ドキュメント / GitHub」カード
+             ])
+             ->middleware([
+                 EncryptCookies::class,
+@@ -50,6 +70,41 @@
+                 DisableBladeIconComponents::class,
+                 DispatchServingFilamentEvent::class,
+             ])
++            ->navigationGroups([
++                NavigationGroup::make()
++                    ->label(__('models.groups.content')),  // コンテンツ管理
++                NavigationGroup::make()
++                    ->label(__('models.groups.menu')),  // メニュー管理
++                NavigationGroup::make()
++                    ->label(__('models.groups.site')),  // サイト管理
++            ])
++            //サイドメニューのコンテンツ管理をデフォルトで開いた状態
++            ->renderHook(
++                PanelsRenderHook::SCRIPTS_BEFORE,
++                fn (): string => <<<'HTML'
++                    <script>
++                        (function () {
++                            try {
++                                const key = 'alpinejs-store';
++                                const raw = localStorage.getItem(key);
++
++                                if (! raw) {
++                                    return;
++                                }
++
++                                const state = JSON.parse(raw);
++
++                                if (state && state.collapsedGroups) {
++                                    delete state.collapsedGroups;
++                                    localStorage.setItem(key, JSON.stringify(state));
++                                }
++                            } catch {
++                                // ignore
++                            }
++                        })();
++                    </script>
++                HTML,
++            )
+             ->authMiddleware([
+                 Authenticate::class,
+             ]);
+/home/nyj94/nyj94.xsrv.jp/cms-app/bootstrap/cache のみに存在: packages.php
+/home/nyj94/nyj94.xsrv.jp/cms-app/bootstrap/cache のみに存在: services.php
+/home/nyj94/nyj94.xsrv.jp/cms-app/database のみに存在: database.sqlite
+/home/nyj94/nyj94.xsrv.jp/cms-app/public のみに存在: .user.ini
+/home/nyj94/nyj94.xsrv.jp/cms-app/storage/framework のみに存在: views
