@@ -1,0 +1,12 @@
+List of files / directories to be uploaded.
+
+Move the cursor over the file / directory,
+to exclude from uploading: type -
+to include the file again: type +
+
+Type gg to move to the beginning and G to move to the end of this file.
+Press the ESC key before entering the following commands:
+To maximize, enter :only
+To go to the following directory, enter :/\/$,
+Type n to move down or N to move up.
+enter :wqa to save and exit, or enter :qa! to exit without saving.
