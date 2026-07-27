@@ -9,6 +9,13 @@ models:
       - chat
       - edit
       - apply
+    # ─── ローカルでのエージェント性能を最大化する設定(from Gemini) ───
+    capabilities:
+      - tool_use                  # エージェント機能（ファイル編集やターミナル実行）を強制有効化
+    
+    defaultCompletionOptions:
+      temperature: 0.0            # 決定論的に動作させ、ハルシネーション（捏造）を排除
+      contextLength: 32768        # 読み込めるコード量を大きく確保（スペックに応じて65536
   #  requestOptions:
   #    extraBodyProperties:
   #      think: false
