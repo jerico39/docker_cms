@@ -1,0 +1,25 @@
+name: Main Config
+version: 1.0.0
+schema: v1
+models:
+  - name: qwen3.5-claude-coder 4B(qwen3.5派生モデル)
+    provider: ollama
+    model: rafw007/qwen35-claude-coder:4b
+    roles:
+      - chat
+      - edit
+      - apply
+  #  requestOptions:
+  #    extraBodyProperties:
+  #      think: false
+  - name: Qwen2.5-Coder 1.5B
+    provider: ollama
+    model: qwen2.5-coder:1.5b-base
+    roles:
+      - autocomplete
+  - name: Nomic Embed
+    provider: ollama
+    model: nomic-embed-text:latest
+    roles:
+      - embed
+    
